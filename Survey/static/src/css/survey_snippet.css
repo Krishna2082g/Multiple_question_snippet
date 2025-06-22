@@ -1,0 +1,51 @@
+.s_survey_snippet .survey-box {
+    max-width: 450px;
+    margin: 0 auto;
+    border: 2px solid #007bff;
+    border-radius: 12px;
+    padding: 24px;
+    background: #f9faff;
+    box-shadow: 0 4px 10px rgb(0 123 255 / 0.2);
+    font-family: Arial, sans-serif;
+}
+
+.s_survey_snippet .question-text {
+    margin-bottom: 18px;
+    font-weight: 600;
+    color: #004085;
+}
+
+.s_survey_snippet .options {
+    margin-bottom: 20px;
+}
+
+.s_survey_snippet .option-label {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.s_survey_snippet .option-label input[type="radio"] {
+    margin-right: 12px;
+    cursor: pointer;
+}
+
+.s_survey_snippet .next-btn {
+    display: block;
+    margin: 0 auto;
+    background-color: #007bff;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 6px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+}
+
+.s_survey_snippet .next-btn:hover {
+    background-color: #0056b3;
+}
