@@ -9,82 +9,96 @@ odoo.define('Survey.survey_snippet', function (require) {
 
         start: async function () {
             this.container = this.el.querySelector('.survey-content');
-            if (!this.container) {
-                console.error('Container with class ".survey-content" not found');
-                return;
-            }
+            if (!this.container) return;
+
             this.currentIndex = 0;
             this.answers = {};
+            this.selectedSurvey = null;
 
-            this.data = await ajax.jsonRpc('/survey_snippet/data', 'call', {});
-
-            if (!this.data || this.data.length === 0) {
-                this.container.innerHTML = "<p>No questions found.</p>";
+            const allSurveys = await ajax.jsonRpc('/survey_snippet/data', 'call', {});
+            if (!Array.isArray(allSurveys) || allSurveys.length === 0) {
+                this.container.innerHTML = "<p>No surveys available.</p>";
                 return;
             }
 
-            this.renderQuestion();
+            this.renderSurveySelector(allSurveys);
+        },
+
+        renderSurveySelector: function (surveys) {
+            this.container.innerHTML = `
+                <h3 class="text-center mb-3">Choose a Survey</h3>
+            `;
+
+            const select = document.createElement('select');
+            select.className = 'form-control mb-3';
+            select.innerHTML = `<option disabled selected>-- Select Survey --</option>`;
+            surveys.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.id;
+                option.textContent = s.title;
+                select.appendChild(option);
+            });
+
+            const button = document.createElement('button');
+            button.textContent = 'Start Survey';
+            button.className = 'btn btn-success d-block mx-auto';
+
+            button.addEventListener('click', () => {
+                const selectedId = parseInt(select.value);
+                const survey = surveys.find(s => s.id === selectedId);
+                if (!survey) return alert('Select a valid survey');
+
+                this.selectedSurvey = survey;
+                this.data = survey.questions;
+                this.currentIndex = 0;
+                this.answers = {};
+                this.renderQuestion();
+            });
+
+            this.container.appendChild(select);
+            this.container.appendChild(button);
         },
 
         renderQuestion: function () {
             const question = this.data[this.currentIndex];
-            this.container.innerHTML = '';
+            this.container.innerHTML = `
+                <h4 class="mb-3">${this.currentIndex + 1}. ${question.text}</h4>
+            `;
 
-            // Question heading
-            const questionTitle = document.createElement('h4');
-            questionTitle.textContent = `${this.currentIndex + 1}. ${question.text}`;
-            this.container.appendChild(questionTitle);
-
-            // Options container
             const optionsDiv = document.createElement('div');
-            optionsDiv.classList.add('options');
+            optionsDiv.className = 'mb-4';
 
             question.answers.forEach((answer, idx) => {
                 const label = document.createElement('label');
-                label.style.display = 'block';
-                label.style.margin = '8px 0';
+                label.className = 'd-block mb-2';
 
                 const radio = document.createElement('input');
                 radio.type = 'radio';
                 radio.name = 'answer';
-                radio.value = answer.text;
-                radio.id = `q${this.currentIndex}_a${idx}`;
+                radio.value = answer.id;
+                radio.className = 'me-2';
 
-                // Restore previously selected answer if any
-                if (this.answers[this.currentIndex] === answer.text) {
-                    radio.checked = true;
-                }
+                if (this.answers[this.currentIndex] === answer.id) radio.checked = true;
 
                 label.appendChild(radio);
-                label.appendChild(document.createTextNode(' ' + answer.text));
-
+                label.appendChild(document.createTextNode(answer.text));
                 optionsDiv.appendChild(label);
             });
+
             this.container.appendChild(optionsDiv);
 
-            // Next or Submit button
             const btn = document.createElement('button');
             btn.textContent = this.currentIndex === this.data.length - 1 ? 'Submit' : 'Next';
-            btn.style.display = 'block';
-            btn.style.margin = '20px auto';
-            btn.style.padding = '10px 20px';
-            btn.style.backgroundColor = '#007bff';
-            btn.style.color = 'white';
-            btn.style.border = 'none';
-            btn.style.borderRadius = '5px';
-            btn.style.cursor = 'pointer';
-
+            btn.className = 'btn btn-primary d-block mx-auto';
             btn.addEventListener('click', () => this.nextQuestion());
+
             this.container.appendChild(btn);
         },
 
         nextQuestion: function () {
-            const selectedOption = this.container.querySelector('input[name="answer"]:checked');
-            if (!selectedOption) {
-                alert('Please select an option before continuing.');
-                return;
-            }
-            this.answers[this.currentIndex] = selectedOption.value;
+            const selected = this.container.querySelector('input[name="answer"]:checked');
+            if (!selected) return alert('Please select an option.');
+            this.answers[this.currentIndex] = parseInt(selected.value);
 
             if (this.currentIndex < this.data.length - 1) {
                 this.currentIndex++;
@@ -95,9 +109,24 @@ odoo.define('Survey.survey_snippet', function (require) {
         },
 
         submitSurvey: function () {
-            // For now just thank the user, you can add ajax call here to save answers
-            this.container.innerHTML = '<h3>Thank you for your response!</h3>';
-            console.log('Submitted answers:', this.answers);
+            this.container.innerHTML = '<h4 class="text-center">Submitting your response...</h4>';
+
+            ajax.jsonRpc('/survey_snippet/submit', 'call', {
+                survey_id: this.selectedSurvey.id,
+                answers: this.answers
+            }).then((result) => {
+                if (result.success) {
+                    this.container.innerHTML = `
+                        <div class="text-center py-5">
+                            <h3>Thank you for your response!</h3>
+                        </div>
+                    `;
+                } else {
+                    this.container.innerHTML = `<h4 class="text-danger">Error: ${result.error || 'Unknown error'}</h4>`;
+                }
+            }).catch(() => {
+                this.container.innerHTML = '<h4 class="text-danger">Server error. Please try again later.</h4>';
+            });
         },
     });
 });

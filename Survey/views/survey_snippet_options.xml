@@ -1,0 +1,15 @@
+<odoo>
+  <data>
+    <template id="survey_snippet_options" inherit_id="website.snippet_options" name="Survey Snippet Options">
+      <xpath expr="//div" position="inside">
+        <div data-selector=".s_survey_snippet" data-js="survey_snippet_option">
+          <we-select string="Survey"
+                     data-attribute="data-sel-survey-id"
+                     data-no-preview="true">
+            <!-- Options added dynamically in JS -->
+          </we-select>
+        </div>
+      </xpath>
+    </template>
+  </data>
+</odoo>

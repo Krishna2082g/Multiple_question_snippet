@@ -1,12 +1,11 @@
-<!-- Survey/views/basic_snippet_template.xml -->
 <odoo>
-    <template id="survey_snippet" name="Interactive Survey">
-        <section class="s_survey_snippet o_colored_level" style="padding: 30px; max-width: 600px; margin: auto; background: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-            <div class="container">
-                <div class="survey-content">
-                    <p>Loading survey...</p>
-                </div>
-            </div>
-        </section>
-    </template>
+  <template id="survey_snippet" name="Interactive Survey">
+    <section class="s_survey_snippet o_colored_level" data-sel-survey-id="0">
+      <div class="container">
+        <div class="survey-content">
+          <p>Loading survey...</p>
+        </div>
+      </div>
+    </section>
+  </template>
 </odoo>
